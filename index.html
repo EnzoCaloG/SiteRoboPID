@@ -41,7 +41,6 @@
       gap: 16px;
     }
 
-    /* Header & Conexão */
     header {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -106,7 +105,6 @@
       color: var(--neon-green);
     }
 
-    /* Botões Principais */
     .action-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -163,7 +161,6 @@
       background: rgba(0, 243, 255, 0.15);
     }
 
-    /* Cards de Controle */
     .control-card {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -261,7 +258,6 @@
       color: #000;
     }
 
-    /* Console de Log */
     .console-box {
       background: #07090c;
       border: 1px solid var(--border-color);
@@ -284,7 +280,6 @@
 <body>
 
   <div class="container">
-    <!-- Cabeçalho -->
     <header>
       <div class="title-box">
         <h1>PID Telemetry</h1>
@@ -293,10 +288,9 @@
           <span id="statusText">Desconectado</span>
         </div>
       </div>
-      <button class="btn-connect" id="btnConnect" onclick="toggleConnection()">Conect BLE</button>
+      <button class="btn-connect" id="btnConnect" onclick="toggleConnection()">Conectar BLE</button>
     </header>
 
-    <!-- Comandos Rápidos -->
     <div class="action-grid">
       <button class="btn-action btn-start" onclick="sendCommand('G')">▶ LIGAR</button>
       <button class="btn-action btn-stop" onclick="sendCommand('S')">■ Parar</button>
@@ -304,7 +298,6 @@
       <button class="btn-action btn-status" onclick="sendCommand('?')">🔍 Ler Valores Atuais</button>
     </div>
 
-    <!-- Controle Kp -->
     <div class="control-card">
       <div class="control-header">
         <div class="control-label">Kp <span>(Proporcional)</span></div>
@@ -320,7 +313,6 @@
       </div>
     </div>
 
-    <!-- Controle Ki -->
     <div class="control-card">
       <div class="control-header">
         <div class="control-label">Ki <span>(Integral)</span></div>
@@ -336,7 +328,6 @@
       </div>
     </div>
 
-    <!-- Controle Kd -->
     <div class="control-card">
       <div class="control-header">
         <div class="control-label">Kd <span>(Derivativo)</span></div>
@@ -352,7 +343,6 @@
       </div>
     </div>
 
-    <!-- Controle Velocidade Base -->
     <div class="control-card">
       <div class="control-header">
         <div class="control-label">Vel. Base <span>(0 - 255)</span></div>
@@ -368,7 +358,6 @@
       </div>
     </div>
 
-    <!-- Controle Velocidade Máxima -->
     <div class="control-card">
       <div class="control-header">
         <div class="control-label">Vel. Máxima <span>(Limite)</span></div>
@@ -384,7 +373,6 @@
       </div>
     </div>
 
-    <!-- Console de Logs -->
     <div class="console-box" id="consoleLog">
       <div class="console-line sys">> Sistema pronto. Clique em "Conectar BLE" para parear com o ESP32.</div>
     </div>
@@ -413,14 +401,19 @@
       }
 
       if (!navigator.bluetooth) {
-        logMsg('Erro: Web Bluetooth não suportado neste navegador. Use o Chrome.', 'err');
+        logMsg('Erro: Web Bluetooth não suportado neste navegador. Use o Chrome no Android ou no computador.', 'err');
         return;
       }
 
       try {
         logMsg('Procurando ESP32...', 'sys');
+
+        // Dois filtros (funcionam como "OU"): acha pelo UUID do serviço OU pelo nome
         bleDevice = await navigator.bluetooth.requestDevice({
-          filters: [{ name: 'Robo_PID_Web' }],
+          filters: [
+            { services: [SERVICE_UUID] },
+            { name: 'Robo_PID_Web' }
+          ],
           optionalServices: [SERVICE_UUID]
         });
 
@@ -437,10 +430,12 @@
             const value = new TextDecoder().decode(event.target.value);
             logMsg('ESP32: ' + value);
           });
-        } catch (e) {}
+        } catch (e) {
+          logMsg('Aviso: notificações indisponíveis.', 'sys');
+        }
 
         document.getElementById('statusDot').classList.add('connected');
-        document.getElementById('statusText').textContent = 'Conectado (' + bleDevice.name + ')';
+        document.getElementById('statusText').textContent = 'Conectado (' + (bleDevice.name || 'ESP32') + ')';
         const btn = document.getElementById('btnConnect');
         btn.textContent = 'Desconectar';
         btn.classList.add('connected');
@@ -478,7 +473,7 @@
 
     function formatDecimals(param, val) {
       const num = parseFloat(val);
-      if (isNaN(num)) return 0;
+      if (isNaN(num)) return '0';
       if (param === 'P') return num.toFixed(3);
       if (param === 'I') return num.toFixed(4);
       if (param === 'D') return num.toFixed(2);
@@ -494,12 +489,12 @@
     function stepValue(param, direction) {
       const input = document.getElementById('num_' + param);
       const stepInput = document.getElementById('step_' + param);
-      
+
       let currentVal = parseFloat(input.value) || 0;
       let stepVal = parseFloat(stepInput.value) || 1;
-      
+
       let newVal = currentVal + (direction * stepVal);
-      
+
       if (param === 'V' || param === 'M') {
         newVal = Math.max(0, Math.min(255, newVal));
       } else if (newVal < 0) {
