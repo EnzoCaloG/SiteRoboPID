@@ -293,12 +293,12 @@
           <span id="statusText">Desconectado</span>
         </div>
       </div>
-      <button class="btn-connect" id="btnConnect" onclick="toggleConnection()">Conectar BLE</button>
+      <button class="btn-connect" id="btnConnect" onclick="toggleConnection()">Conect BLE</button>
     </header>
 
     <!-- Comandos Rápidos -->
     <div class="action-grid">
-      <button class="btn-action btn-start" onclick="sendCommand('G')">▶ Ligar</button>
+      <button class="btn-action btn-start" onclick="sendCommand('G')">▶ LIGAR</button>
       <button class="btn-action btn-stop" onclick="sendCommand('S')">■ Parar</button>
       <button class="btn-action btn-invert" onclick="sendCommand('X')">⇄ Inverter Sentido</button>
       <button class="btn-action btn-status" onclick="sendCommand('?')">🔍 Ler Valores Atuais</button>
@@ -392,7 +392,7 @@
 
   <script>
     const SERVICE_UUID        = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
-    const CHARACTERISTIC_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26aae';
+    const CHARACTERISTIC_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
 
     let bleDevice = null;
     let bleCharacteristic = null;
